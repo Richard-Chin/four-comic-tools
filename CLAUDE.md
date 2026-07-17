@@ -17,7 +17,8 @@
 - 📘 Obsidian 駕駛艙：`secondbrain/four-comic-tools/工作筆記.md`（想法的家）
 
 ## 作品清單
-（之後加新作品時會自動更新）網址格式：`https://richard-chin.github.io/four-comic-tools/tools/<名稱>/`
+網址格式：`https://richard-chin.github.io/four-comic-tools/tools/<名稱>/`
+- **retirement-gap-566**：《退休穩了啦》— 退休金缺口四格（含分鏡腳本＋網頁版）
 
 ## 工作注意事項
 - 這是公開 repo：客戶／員工個資、佣金、薪資、健康、財務資料一律不可放進來，需要用到就另開私人 repo
