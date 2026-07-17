@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>退休穩了啦 — 四格漫畫</title>
+<meta name="description" content="四格漫畫：退休金缺口試算示意">
+<style>
+  :root {
+    --ink: #1a2332;
+    --paper: #fdfcf8;
+    --line: #1a2332;
+    --accent: #1f6f5c;
+    --alarm: #c0392b;
+    --muted: #6b7684;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e8e6df;
+    color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.7;
+    padding: 24px 16px 64px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 28px; }
+  h1 { font-size: 1.9rem; letter-spacing: .04em; margin-bottom: 6px; }
+  .sub { color: var(--muted); font-size: .9rem; }
+
+  .strip { display: flex; flex-direction: column; gap: 16px; }
+
+  .panel {
+    background: var(--paper);
+    border: 3px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 18px 18px;
+    position: relative;
+    box-shadow: 4px 4px 0 rgba(26,35,50,.18);
+  }
+  .num {
+    position: absolute; top: -3px; left: -3px;
+    background: var(--line); color: var(--paper);
+    font-size: .75rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 0 0 6px 0;
+  }
+
+  .stage { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+  .who { text-align: center; flex-shrink: 0; width: 62px; }
+  .face { font-size: 2.6rem; line-height: 1.1; }
+  .name { font-size: .68rem; color: var(--muted); }
+
+  .bubbles { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+  .say {
+    background: #fff; border: 2px solid var(--line);
+    border-radius: 14px; padding: 9px 13px;
+    font-size: .96rem; position: relative;
+  }
+  .say.right { background: #eef4f2; }
+  .say b { color: var(--accent); }
+
+  .beat {
+    font-size: .78rem; color: var(--muted);
+    border-top: 1px dashed #ccc; padding-top: 9px;
+  }
+
+  /* 第四格 */
+  .panel.punch { background: #2b3444; border-color: #2b3444; color: #f2f0ea; }
+  .panel.punch .num { background: #f2f0ea; color: #2b3444; }
+  .panel.punch .say { background: #3b4658; border-color: #5a6577; color: #f2f0ea; }
+  .panel.punch .name, .panel.punch .beat { color: #9aa4b4; border-color: #4a5464; }
+  .bignum {
+    text-align: center; margin: 6px 0 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .calc { font-size: .92rem; color: #9aa4b4; margin-bottom: 4px; }
+  .total {
+    font-size: 2.5rem; font-weight: 800; color: #ff8a7a;
+    letter-spacing: .02em;
+  }
+  .total small { font-size: 1.1rem; font-weight: 600; }
+
+  .note {
+    margin-top: 26px; font-size: .78rem; color: var(--muted);
+    background: #f4f3ee; border-left: 3px solid #c9c6ba;
+    padding: 12px 14px; border-radius: 0 4px 4px 0;
+  }
+  .note p + p { margin-top: 6px; }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 1.55rem; }
+    .total { font-size: 2rem; }
+    .face { font-size: 2.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>退休穩了啦</h1>
+    <p class="sub">四格漫畫 ‧ 退休金缺口試算示意</p>
+  </header>
+
+  <div class="strip">
+
+    <div class="panel">
+      <span class="num">1</span>
+      <div class="stage">
+        <div class="who"><div class="face">😎</div><div class="name">老王</div></div>
+        <div class="bubbles">
+          <div class="say">我勞保繳滿 35 年，加上勞退，<b>退休穩啦！</b></div>
+        </div>
+      </div>
+      <p class="beat">公園長椅，老王翹腳喝手搖，一臉輕鬆。</p>
+    </div>
+
+    <div class="panel">
+      <span class="num">2</span>
+      <div class="stage">
+        <div class="who"><div class="face">🧐</div><div class="name">阿明</div></div>
+        <div class="bubbles">
+          <div class="say">那你退休以後，一個月打算花多少？</div>
+          <div class="say right">房貸繳完了…吃飯、健保、水電、偶爾出去玩…<b>六萬</b>跑不掉吧。</div>
+        </div>
+      </div>
+      <p class="beat">阿明轉頭。老王開始掰手指。</p>
+    </div>
+
+    <div class="panel">
+      <span class="num">3</span>
+      <div class="stage">
+        <div class="who"><div class="face">📱</div><div class="name">阿明</div></div>
+        <div class="bubbles">
+          <div class="say">勞保年金一個月給你 <b>兩萬五</b>。</div>
+          <div class="say right">……那剩下的<b>三萬五</b>？</div>
+          <div class="say">你自己出啊。</div>
+        </div>
+      </div>
+      <p class="beat">計算機螢幕亮著 25,000。老王笑容開始僵。</p>
+    </div>
+
+    <div class="panel punch">
+      <span class="num">4</span>
+      <div class="bignum">
+        <div class="calc">35,000 × 12 個月 × 30 年</div>
+        <div class="total">1,260<small> 萬</small></div>
+      </div>
+      <div class="stage">
+        <div class="who"><div class="face">😱</div><div class="name">老王</div></div>
+        <div class="bubbles">
+          <div class="say">一個月差三萬五，我還要活三十年……</div>
+          <div class="say">…我還是繼續上班好了。</div>
+        </div>
+      </div>
+      <p class="beat">手搖杯掉在地上。</p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <p><strong>關於這些數字</strong>：月花 6 萬、勞保年金 2.5 萬為情境設定，實際年金金額因投保年資與級距而異，請以勞保局試算為準。</p>
+    <p>1,260 萬為單純累加（3.5 萬 × 12 × 30），未計入通膨，也未假設任何投資報酬率。本內容為退休試算示意，非個人化財務建議，亦不涉及任何商品之收益訴求或保證。</p>
+  </div>
+
+</div>
+</body>
+</html>
