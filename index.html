@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四格漫畫</title>
+<meta name="description" content="四格漫畫作品集">
+<style>
+  :root {
+    --ink: #1a2332;
+    --paper: #fdfcf8;
+    --accent: #1f6f5c;
+    --muted: #6b7684;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e8e6df;
+    color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.7;
+    padding: 40px 16px 64px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 32px; }
+  h1 { font-size: 2.1rem; letter-spacing: .06em; margin-bottom: 6px; }
+  .sub { color: var(--muted); font-size: .9rem; }
+
+  .list { display: flex; flex-direction: column; gap: 14px; }
+
+  a.card {
+    display: block;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 4px;
+    padding: 18px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 4px 4px 0 rgba(26,35,50,.18);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  a.card:hover, a.card:focus {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 rgba(26,35,50,.24);
+  }
+  .tag { font-size: .7rem; color: var(--muted); letter-spacing: .1em; }
+  .title { font-size: 1.3rem; font-weight: 800; margin: 2px 0 6px; }
+  .desc { font-size: .88rem; color: #46505f; }
+
+  footer {
+    margin-top: 32px; font-size: .78rem; color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>四格漫畫</h1>
+    <p class="sub">用四格講一件想清楚的事</p>
+  </header>
+
+  <div class="list">
+
+    <a class="card" href="tools/retirement-gap-566/">
+      <p class="tag">老王系列 ‧ 第 1 話</p>
+      <p class="title">退休穩了啦</p>
+      <p class="desc">老王以為勞保加勞退就夠了。阿明問他一個月要花多少。</p>
+    </a>
+
+    <a class="card" href="tools/deposit-vs-inflation/">
+      <p class="tag">老王系列 ‧ 第 2 話</p>
+      <p class="title">我什麼都沒做</p>
+      <p class="desc">老王把錢全放定存，覺得很穩。定存 1.8%，通膨 2.2%。</p>
+    </a>
+
+  </div>
+
+  <footer>
+    <p>內容為情境試算示意，非個人化財務建議。</p>
+  </footer>
+
+</div>
+</body>
+</html>

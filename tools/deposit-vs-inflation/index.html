@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我什麼都沒做 — 四格漫畫</title>
+<meta name="description" content="四格漫畫：定存利率追不上通膨">
+<style>
+  :root {
+    --ink: #1a2332;
+    --paper: #fdfcf8;
+    --line: #1a2332;
+    --accent: #1f6f5c;
+    --muted: #6b7684;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e8e6df;
+    color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.7;
+    padding: 24px 16px 64px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 28px; }
+  .series { font-size: .75rem; color: var(--muted); letter-spacing: .1em; }
+  h1 { font-size: 1.9rem; letter-spacing: .04em; margin: 4px 0 6px; }
+  .sub { color: var(--muted); font-size: .9rem; }
+
+  .strip { display: flex; flex-direction: column; gap: 16px; }
+
+  .panel {
+    background: var(--paper);
+    border: 3px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 18px 18px;
+    position: relative;
+    box-shadow: 4px 4px 0 rgba(26,35,50,.18);
+  }
+  .num {
+    position: absolute; top: -3px; left: -3px;
+    background: var(--line); color: var(--paper);
+    font-size: .75rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 0 0 6px 0;
+  }
+
+  .stage { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+  .who { text-align: center; flex-shrink: 0; width: 62px; }
+  .face { font-size: 2.6rem; line-height: 1.1; }
+  .name { font-size: .68rem; color: var(--muted); }
+
+  .bubbles { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+  .say {
+    background: #fff; border: 2px solid var(--line);
+    border-radius: 14px; padding: 9px 13px;
+    font-size: .96rem;
+  }
+  .say.right { background: #eef4f2; }
+  .say b { color: var(--accent); }
+
+  .beat {
+    font-size: .78rem; color: var(--muted);
+    border-top: 1px dashed #ccc; padding-top: 9px;
+  }
+
+  /* 第四格 */
+  .panel.punch { background: #2b3444; border-color: #2b3444; color: #f2f0ea; }
+  .panel.punch .num { background: #f2f0ea; color: #2b3444; }
+  .panel.punch .say { background: #3b4658; border-color: #5a6577; color: #f2f0ea; }
+  .panel.punch .say b { color: #7fd4bb; }
+  .panel.punch .name, .panel.punch .beat { color: #9aa4b4; border-color: #4a5464; }
+
+  .ledger {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; margin: 6px 0 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .col { text-align: center; }
+  .col .lbl { font-size: .72rem; color: #9aa4b4; }
+  .col .amt { font-size: 1.7rem; font-weight: 800; }
+  .col.now .amt { color: #9aa4b4; }
+  .col.later .amt { color: #ff8a7a; }
+  .arrow { font-size: 1.2rem; color: #5a6577; }
+  .col small { font-size: .85rem; }
+
+  .note {
+    margin-top: 26px; font-size: .78rem; color: var(--muted);
+    background: #f4f3ee; border-left: 3px solid #c9c6ba;
+    padding: 12px 14px; border-radius: 0 4px 4px 0;
+  }
+  .note p + p { margin-top: 6px; }
+  .note a { color: var(--accent); }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 1.55rem; }
+    .col .amt { font-size: 1.35rem; }
+    .face { font-size: 2.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="series">老王系列 ‧ 第 2 話</p>
+    <h1>我什麼都沒做</h1>
+    <p class="sub">四格漫畫 ‧ 定存與通膨的賽跑</p>
+  </header>
+
+  <div class="strip">
+
+    <div class="panel">
+      <span class="num">1</span>
+      <div class="stage">
+        <div class="who"><div class="face">😏</div><div class="name">老王</div></div>
+        <div class="bubbles">
+          <div class="say">上次被你嚇到，我把錢全放定存了。<b>五百萬</b>，穩！</div>
+        </div>
+      </div>
+      <p class="beat">存摺「啪」地拍在桌上。</p>
+    </div>
+
+    <div class="panel">
+      <span class="num">2</span>
+      <div class="stage">
+        <div class="who"><div class="face">🍵</div><div class="name">阿明</div></div>
+        <div class="bubbles">
+          <div class="say">利率多少？</div>
+          <div class="say right">1.8%。</div>
+          <div class="say">那通膨多少？</div>
+          <div class="say right">…蛤？</div>
+        </div>
+      </div>
+      <p class="beat">阿明放下茶杯。老王笑容微僵。</p>
+    </div>
+
+    <div class="panel">
+      <span class="num">3</span>
+      <div class="stage">
+        <div class="who"><div class="face">✌️</div><div class="name">阿明</div></div>
+        <div class="bubbles">
+          <div class="say">近年物價一年漲 <b>2.2%</b>。你的錢一年長 <b>1.8%</b>。</div>
+          <div class="say right">才差 0.4% 而已嘛…</div>
+        </div>
+      </div>
+      <p class="beat">老王歪頭，不覺得有什麼大不了。</p>
+    </div>
+
+    <div class="panel punch">
+      <span class="num">4</span>
+      <div class="ledger">
+        <div class="col now">
+          <div class="lbl">現在</div>
+          <div class="amt">500<small> 萬</small></div>
+        </div>
+        <div class="arrow">10 年 →</div>
+        <div class="col later">
+          <div class="lbl">買得到的東西</div>
+          <div class="amt">481<small> 萬</small></div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="who"><div class="face">😶</div><div class="name">老王</div></div>
+        <div class="bubbles">
+          <div class="say right">我什麼都沒做…就少了<b>十九萬</b>？</div>
+          <div class="say">你什麼都沒做，就是那個原因。</div>
+        </div>
+      </div>
+      <p class="beat">存摺從手中滑落。</p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <p><strong>關於這些數字</strong>：定存 1.8%、通膨 2.2% 為概略值，實際請以中央銀行牌告利率與主計總處公布之 CPI 年增率為準。481 萬 = 500 萬 × (1.018 ÷ 1.022)<sup>10</sup>，為購買力試算，非帳戶餘額。</p>
+    <p>本內容僅說明定存實質報酬可能為負的算術事實，不構成個人化財務建議，亦不涉及任何商品之收益訴求或保證。</p>
+  </div>
+
+</div>
+</body>
+</html>
