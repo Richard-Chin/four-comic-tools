@@ -1,0 +1,8 @@
+desktop.ini
+*.tmp
+~$*
+.env
+*.key
+credentials.*
+.claude/
+node_modules/
