@@ -6,3 +6,9 @@ desktop.ini
 credentials.*
 .claude/
 node_modules/
+
+# 個人臉部參考照片不進公開 repo（隱私紅線）
+tools/*/reference-selfie.*
+tools/chibi-sticker-selfie/*.jpg
+tools/chibi-sticker-selfie/*.jpeg
+tools/chibi-sticker-selfie/*.heic
