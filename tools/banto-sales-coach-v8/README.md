@@ -2,7 +2,9 @@
 
 富邦人壽邦拓通訊處內部業務陪練工具的 **n8n 工作流程**。業務員透過 Webhook 與一個規則式的「虛擬客戶」多輪對話，結束後自動評分並（選用）寫入 Google Sheet，供業輔訓練使用。
 
-- 檔案：[`banto-sales-coach-v8.json`](./banto-sales-coach-v8.json)（可直接匯入 n8n）
+- 後端：[`banto-sales-coach-v8.json`](./banto-sales-coach-v8.json)（可直接匯入 n8n）
+- 前端：[`index.html`](./index.html) — 網頁聊天介面，填入 Webhook 網址即可陪練
+- 網址：`https://richard-chin.github.io/four-comic-tools/tools/banto-sales-coach-v8/`
 - 屬性：內部訓練工具，非對外行銷素材
 
 ## 流程一覽
@@ -18,6 +20,18 @@ Webhook（陪練訊息）
                      ├─ Google Sheets：寫入陪練紀錄
                      └─ 回傳本局評分
 ```
+
+## 網頁前端（index.html）
+
+開啟工具網址即可使用，操作三步：
+
+1. **① Webhook 連線**：貼上 n8n「Webhook－陪練訊息」節點的 Production URL（會記在瀏覽器 localStorage，下次自動帶入，不上傳）。
+2. **② 開局設定**：選業務員、情境、客戶類型、難度。送出第一句話後設定即鎖定，直到本局結束。
+3. **③ 對話**：與虛擬客戶多輪對話（`Ctrl/⌘ + Enter` 可快速送出）；本局結束後 **④** 顯示五維長條評分、主要弱項、改進建議與是否需主管介入，可「再練一局」。
+
+前端會自動保存並回傳 `session_id` / `round` / `history`，串接後端多輪邏輯。
+
+> **CORS**：前端由 GitHub Pages（`https://richard-chin.github.io`）呼叫你的 n8n，屬跨網域請求。若送出失敗，請在 n8n Webhook 節點的回應標頭加上 `Access-Control-Allow-Origin`（允許該來源或 `*`），並確認工作流程已啟用。
 
 ## 匯入與設定
 

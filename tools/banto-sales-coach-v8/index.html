@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>邦拓 AI Sales Coach V8 — 多輪客戶模擬器</title>
+<meta name="description" content="富邦人壽邦拓通訊處內部業務陪練工具：與規則式虛擬客戶多輪對話，結束後自動評分。">
+<style>
+  :root {
+    --navy: #0f2545;
+    --navy-soft: #1c3a63;
+    --gold: #c9a227;
+    --gold-soft: #e6c65a;
+    --paper: #ffffff;
+    --bg: #eef1f6;
+    --ink: #1a2230;
+    --muted: #6b7684;
+    --line: #d5dbe6;
+    --rep: #e7f0ff;
+    --cust: #fff7e0;
+    --ok: #1f8a5b;
+    --warn: #c0392b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.6;
+    padding: 20px 14px 60px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  header {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 22px;
+    border-bottom: 3px solid var(--gold);
+  }
+  header h1 { font-size: 1.35rem; letter-spacing: .03em; }
+  header .sub { color: var(--gold-soft); font-size: .82rem; margin-top: 4px; }
+  header .tag { color: #b9c6dd; font-size: .74rem; margin-top: 8px; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: none;
+    padding: 18px 20px;
+  }
+  .card:last-child { border-radius: 0 0 12px 12px; }
+
+  h2 { font-size: .95rem; color: var(--navy); margin-bottom: 12px; letter-spacing: .02em; }
+
+  label { display: block; font-size: .8rem; color: var(--muted); margin: 10px 0 4px; }
+  input, select, textarea {
+    width: 100%; font-size: .95rem; font-family: inherit;
+    padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+    background: #fbfcfe; color: var(--ink);
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 52px; }
+
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > div { flex: 1 1 45%; min-width: 140px; }
+
+  button {
+    font-family: inherit; font-size: .95rem; font-weight: 600;
+    border: none; border-radius: 8px; padding: 11px 18px; cursor: pointer;
+    background: var(--navy); color: #fff; transition: background .15s;
+  }
+  button:hover { background: var(--navy-soft); }
+  button:disabled { background: #9aa5b6; cursor: not-allowed; }
+  button.gold { background: var(--gold); color: #3a2f00; }
+  button.gold:hover { background: var(--gold-soft); }
+  button.ghost { background: transparent; color: var(--navy); border: 1px solid var(--line); }
+
+  .hint { font-size: .74rem; color: var(--muted); margin-top: 6px; }
+
+  /* Chat */
+  #chat { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .msg { max-width: 82%; padding: 9px 13px; border-radius: 12px; font-size: .93rem; white-space: pre-wrap; }
+  .msg.rep  { align-self: flex-end;   background: var(--rep);  border-bottom-right-radius: 3px; }
+  .msg.cust { align-self: flex-start; background: var(--cust); border-bottom-left-radius: 3px; }
+  .msg .who { display: block; font-size: .7rem; color: var(--muted); margin-bottom: 2px; }
+  .msg .mood { font-size: .7rem; color: var(--gold); margin-top: 3px; }
+  .meta-line { text-align: center; font-size: .72rem; color: var(--muted); margin: 4px 0; }
+
+  .composer { display: flex; gap: 8px; align-items: flex-end; }
+  .composer textarea { flex: 1; }
+
+  /* Scorecard */
+  #result { display: none; }
+  .total { text-align: center; margin-bottom: 14px; }
+  .total .num { font-size: 2.6rem; font-weight: 700; color: var(--navy); line-height: 1; }
+  .total .lab { font-size: .8rem; color: var(--muted); }
+  .bars { display: flex; flex-direction: column; gap: 8px; }
+  .bar { display: grid; grid-template-columns: 78px 1fr 34px; align-items: center; gap: 8px; font-size: .82rem; }
+  .bar .track { height: 10px; background: #eceff4; border-radius: 6px; overflow: hidden; }
+  .bar .fill { height: 100%; background: var(--gold); border-radius: 6px; }
+  .bar.weak .fill { background: var(--warn); }
+  .bar .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .advice { margin-top: 14px; padding: 12px 14px; background: #f6f8fc; border-left: 3px solid var(--gold); border-radius: 4px; font-size: .88rem; }
+  .advice b { color: var(--navy); }
+  .flag { margin-top: 10px; font-size: .84rem; font-weight: 600; }
+  .flag.on  { color: var(--warn); }
+  .flag.off { color: var(--ok); }
+
+  .banner { font-size: .82rem; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; }
+  .banner.err { background: #fdecea; color: #a12b1e; border: 1px solid #f3b8b0; }
+  details.setup summary { cursor: pointer; font-size: .8rem; color: var(--navy); }
+  footer { text-align: center; font-size: .72rem; color: var(--muted); margin-top: 18px; line-height: 1.7; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>邦拓 AI Sales Coach V8</h1>
+    <div class="sub">多輪客戶模擬器・業務陪練</div>
+    <div class="tag">富邦人壽邦拓通訊處｜內部業輔訓練工具（非對外行銷素材）</div>
+  </header>
+
+  <!-- 連線設定 -->
+  <div class="card" id="connCard">
+    <h2>① Webhook 連線</h2>
+    <label for="webhook">n8n Webhook 網址（POST）</label>
+    <input id="webhook" type="url" placeholder="https://你的n8n網域/webhook/banto-roleplay-chat" autocomplete="off">
+    <div class="hint">從 n8n「Webhook－陪練訊息」節點複製 Production URL。網址只存在你這台瀏覽器（localStorage），不會上傳。</div>
+  </div>
+
+  <!-- 開局設定 -->
+  <div class="card" id="setupCard">
+    <h2>② 開局設定</h2>
+    <div class="row">
+      <div>
+        <label for="rep_name">業務員</label>
+        <input id="rep_name" type="text" placeholder="你的名字">
+      </div>
+      <div>
+        <label for="scenario">情境</label>
+        <input id="scenario" type="text" value="家庭保障健檢">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label for="customer_type">客戶類型</label>
+        <select id="customer_type">
+          <option>理性精算型</option>
+          <option>防備冷淡型</option>
+          <option>感性家庭型</option>
+          <option>一般觀望型</option>
+        </select>
+      </div>
+      <div>
+        <label for="difficulty">難度</label>
+        <select id="difficulty">
+          <option>基礎</option>
+          <option>中階</option>
+          <option>進階</option>
+        </select>
+      </div>
+    </div>
+    <div class="hint">難度越高，客戶越會在後段丟出價格／複合異議。基礎最多 5 回合、中階 6、進階 8。</div>
+  </div>
+
+  <!-- 對話 -->
+  <div class="card" id="chatCard">
+    <h2 id="chatTitle">③ 開始陪練</h2>
+    <div id="banner"></div>
+    <div id="chat"></div>
+
+    <div class="composer" id="composer">
+      <textarea id="rep_message" placeholder="輸入你要對客戶說的話，然後按送出…"></textarea>
+      <button id="sendBtn" class="gold">送出</button>
+    </div>
+    <div class="hint" id="composerHint">第一句可以先自我介紹、說明今天想先了解、不急著談商品。</div>
+
+    <!-- 評分結果 -->
+    <div id="result">
+      <div class="total">
+        <div class="num" id="totalScore">–</div>
+        <div class="lab">總分（滿分 100）</div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="advice" id="advice"></div>
+      <div class="flag" id="managerFlag"></div>
+      <div style="margin-top:16px; text-align:center;">
+        <button class="ghost" id="restartBtn">再練一局</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    對白為一般業務陪練語句，未涉保單轉換／貸款購買／報酬率推導／收益保證／商品代號。<br>
+    陪練紀錄僅供訓練用途，請勿在此輸入真實客戶個資。
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var LS_KEY = "banto_coach_webhook";
+
+  // ---- 狀態 ----
+  var state = {
+    session_id: "",
+    round: 1,
+    history: "",
+    ended: false,
+    started: false
+  };
+
+  // 還原上次的 webhook 網址
+  try {
+    var saved = localStorage.getItem(LS_KEY);
+    if (saved) $("webhook").value = saved;
+  } catch (e) {}
+
+  function showBanner(msg, kind) {
+    var b = $("banner");
+    if (!msg) { b.innerHTML = ""; return; }
+    b.innerHTML = '<div class="banner ' + (kind || "err") + '">' + escapeHtml(msg) + "</div>";
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+    });
+  }
+
+  function addMsg(who, text, mood) {
+    var el = document.createElement("div");
+    el.className = "msg " + (who === "業務" ? "rep" : "cust");
+    var moodHtml = mood ? '<span class="mood">客戶情緒：' + escapeHtml(mood) + "</span>" : "";
+    el.innerHTML = '<span class="who">' + who + "</span>" + escapeHtml(text) + moodHtml;
+    $("chat").appendChild(el);
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function addMeta(text) {
+    var el = document.createElement("div");
+    el.className = "meta-line";
+    el.textContent = text;
+    $("chat").appendChild(el);
+  }
+
+  function lockSetup(locked) {
+    ["webhook", "rep_name", "scenario", "customer_type", "difficulty"].forEach(function (id) {
+      $(id).disabled = locked;
+    });
+  }
+
+  function send() {
+    var url = $("webhook").value.trim();
+    if (!url) { showBanner("請先填入 n8n Webhook 網址。", "err"); return; }
+    var msg = $("rep_message").value.trim();
+    if (!msg) { return; }
+
+    // 首輪：鎖定設定並存網址
+    if (!state.started) {
+      state.started = true;
+      lockSetup(true);
+      try { localStorage.setItem(LS_KEY, url); } catch (e) {}
+      $("chatTitle").textContent = "③ 陪練進行中";
+    }
+
+    showBanner("");
+    addMsg("業務", msg);
+    $("rep_message").value = "";
+    setSending(true);
+
+    var payload = {
+      session_id: state.session_id || undefined,
+      rep_name: $("rep_name").value.trim() || "未命名業務",
+      scenario: $("scenario").value.trim() || "家庭保障健檢",
+      customer_type: $("customer_type").value,
+      difficulty: $("difficulty").value,
+      round: state.round,
+      rep_message: msg,
+      history: state.history
+    };
+
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("伺服器回應 " + res.status);
+        return res.json();
+      })
+      .then(handleResponse)
+      .catch(function (err) {
+        showBanner("送出失敗：" + err.message + "。請確認 Webhook 網址、n8n 工作流程已啟用，且允許跨網域（CORS）。", "err");
+        // 讓使用者可重試
+        $("rep_message").value = msg;
+      })
+      .then(function () { setSending(false); });
+  }
+
+  function setSending(on) {
+    $("sendBtn").disabled = on;
+    $("rep_message").disabled = on;
+    $("sendBtn").textContent = on ? "客戶思考中…" : "送出";
+  }
+
+  function handleResponse(data) {
+    if (data.session_id) state.session_id = data.session_id;
+    if (typeof data.history === "string") state.history = data.history;
+
+    addMsg("客戶", data.customer_reply || "（無回應）", data.customer_mood);
+
+    if (data.ended) {
+      state.ended = true;
+      showResult(data);
+    } else {
+      // 下一輪回合數
+      state.round = data.next_round || (state.round + 1);
+      if (data.objective_reached) addMeta("✓ 已取得下一步承諾");
+    }
+  }
+
+  function showResult(data) {
+    // 收起輸入框、顯示評分
+    $("composer").classList.add("hidden");
+    $("composerHint").classList.add("hidden");
+    $("chatTitle").textContent = "④ 本局評分";
+    $("result").style.display = "block";
+
+    $("totalScore").textContent = (data.total_score != null ? data.total_score : "–");
+
+    var labels = { opening: "開場", questioning: "提問", needs: "需求分析", objection: "異議處理", closing: "成交收口" };
+    var scores = data.scores || {};
+    var weakLabel = data.weakest_skill || "";
+    var barsHtml = "";
+    Object.keys(labels).forEach(function (k) {
+      var v = scores[k];
+      if (v == null) v = 0;
+      var isWeak = labels[k] === weakLabel;
+      barsHtml +=
+        '<div class="bar' + (isWeak ? " weak" : "") + '">' +
+        "<span>" + labels[k] + "</span>" +
+        '<span class="track"><span class="fill" style="width:' + Math.max(0, Math.min(100, v)) + '%"></span></span>' +
+        '<span class="val">' + v + "</span>" +
+        "</div>";
+    });
+    $("bars").innerHTML = barsHtml;
+
+    $("advice").innerHTML =
+      "<b>主要弱項：</b>" + escapeHtml(weakLabel || "—") +
+      (data.improvement ? "<br><b>改進建議：</b>" + escapeHtml(data.improvement) : "");
+
+    var flag = $("managerFlag");
+    if (data.manager_required) {
+      flag.className = "flag on";
+      flag.textContent = "⚑ 建議主管介入輔導";
+    } else {
+      flag.className = "flag off";
+      flag.textContent = "✓ 表現達標，無需主管介入";
+    }
+  }
+
+  function restart() {
+    state = { session_id: "", round: 1, history: "", ended: false, started: false };
+    $("chat").innerHTML = "";
+    $("result").style.display = "none";
+    $("composer").classList.remove("hidden");
+    $("composerHint").classList.remove("hidden");
+    $("chatTitle").textContent = "③ 開始陪練";
+    $("rep_message").value = "";
+    lockSetup(false);
+    showBanner("");
+    setSending(false);
+  }
+
+  // ---- 事件 ----
+  $("sendBtn").addEventListener("click", send);
+  $("restartBtn").addEventListener("click", restart);
+  $("rep_message").addEventListener("keydown", function (e) {
+    // Ctrl/Cmd + Enter 送出
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); send(); }
+  });
+})();
+</script>
+</body>
+</html>
