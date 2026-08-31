@@ -2,10 +2,12 @@
 
 富邦人壽邦拓通訊處內部業務陪練工具的 **n8n 工作流程**。業務員透過 Webhook 與一個規則式的「虛擬客戶」多輪對話，結束後自動評分並（選用）寫入 Google Sheet，供業輔訓練使用。
 
-- 後端：[`banto-sales-coach-v8.json`](./banto-sales-coach-v8.json)（可直接匯入 n8n）
-- 前端：[`index.html`](./index.html) — 網頁聊天介面，填入 Webhook 網址即可陪練
+- 前端：[`index.html`](./index.html) — **V10 網頁聊天介面**（深色手機版；`x-banto-token` 驗證、對話歷史由伺服器端以 `session_id` 保存）
+- 後端：[`banto-sales-coach-v8.json`](./banto-sales-coach-v8.json) — **V8 後端（保留參考）**，可直接匯入 n8n
 - 網址：`https://richard-chin.github.io/four-comic-tools/tools/banto-sales-coach-v8/`
 - 屬性：內部訓練工具，非對外行銷素材
+
+> **版本狀態**：前端已對齊實際使用中的 **V10**（token 驗證 + 伺服器端歷史，webhook path `banto-roleplay-v10`）。倉庫內目前只有 **V8 後端 JSON**（webhook path `banto-roleplay-chat`、無 token、client 端歷史）作為契約參考；**V10 的 n8n 工作流程 JSON 待補**。要讓前後端完全一致，請把 V10 的 n8n JSON 也放進本資料夾。
 
 ## 流程一覽
 
@@ -21,17 +23,24 @@ Webhook（陪練訊息）
                      └─ 回傳本局評分
 ```
 
-## 網頁前端（index.html）
+## 網頁前端（index.html，V10）
 
-開啟工具網址即可使用，操作三步：
+開啟工具網址即可使用：
 
-1. **① Webhook 連線**：貼上 n8n「Webhook－陪練訊息」節點的 Production URL（會記在瀏覽器 localStorage，下次自動帶入，不上傳）。
-2. **② 開局設定**：選業務員、情境、客戶類型、難度。送出第一句話後設定即鎖定，直到本局結束。
-3. **③ 對話**：與虛擬客戶多輪對話（`Ctrl/⌘ + Enter` 可快速送出）；本局結束後 **④** 顯示五維長條評分、主要弱項、改進建議與是否需主管介入，可「再練一局」。
+1. 點右上「**設定**」，填 **Webhook URL**（V10 Production URL）與 **x-banto-token**，選業務員、情境、客戶類型、難度。設定會存在本機瀏覽器 localStorage、不上傳。
+2. 按「**開始新局**」，與虛擬客戶多輪對話（**Enter** 送出、**Shift+Enter** 換行）。
+3. 本局結束後顯示五維長條評分（開場／提問／需求／異議／收口）、主要弱項、改進建議與是否需主管介入；到「設定 → 開始新局」可再來一局。
 
-前端會自動保存並回傳 `session_id` / `round` / `history`，串接後端多輪邏輯。
+**前後端介面**：首輪送完整開局參數（`rep_name / scenario / customer_type / difficulty / rep_message / session_id`）；之後每輪只送 `session_id + rep_message`，對話歷史由 n8n 端依 `session_id` 保存。每次請求帶 `x-banto-token` 標頭。
 
-> **CORS**：前端由 GitHub Pages（`https://richard-chin.github.io`）呼叫你的 n8n，屬跨網域請求。若送出失敗，請在 n8n Webhook 節點的回應標頭加上 `Access-Control-Allow-Origin`（允許該來源或 `*`），並確認工作流程已啟用。
+> **驗證**：`x-banto-token` 只是「弱鎖」——它寫在公開頁面與 localStorage、任何拿到頁面的人都看得到。內部陪練用足夠，但別把它當強驗證，也別拿這條 webhook 去接會寫入敏感資料的流程。
+>
+> **CORS**：前端由 GitHub Pages（`https://richard-chin.github.io`）跨網域呼叫 n8n。若送出失敗，到 n8n Webhook 節點 → Options → **Allowed Origins (CORS)** 填該來源或 `*`，並確認工作流程已啟用。
+
+### 前端已做的加固（相對於原始 V10 檔）
+- **非 2xx 統一報錯**：後端回 4xx／5xx 時明確顯示 HTTP 狀態，不再誤判為成功而顯示「（無回應）」。
+- **評分卡 XSS 硬化**：`weakest_skill`／`improvement` 經跳脫後才寫入，避免後端回吐內容被當 HTML 執行。
+- **移除 `maximum-scale=1`**：恢復手機雙指縮放，友善視力需求。
 
 ## 匯入與設定
 
