@@ -1,0 +1,329 @@
+{
+  "name": "邦拓 AI Sales Coach V8 - 多輪客戶模擬器",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "banto-roleplay-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "WebhookNode",
+      "name": "Webhook－陪練訊息",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "banto-roleplay-chat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "session_id",
+              "value": "={{ $json.body.session_id || $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "rep_name",
+              "value": "={{ $json.body.rep_name || '未命名業務' }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "scenario",
+              "value": "={{ $json.body.scenario || '家庭保障健檢' }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "customer_type",
+              "value": "={{ $json.body.customer_type || '理性精算型' }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "difficulty",
+              "value": "={{ $json.body.difficulty || '基礎' }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "round",
+              "value": "={{ Number($json.body.round || 1) }}",
+              "type": "number"
+            },
+            {
+              "id": "a7",
+              "name": "rep_message",
+              "value": "={{ $json.body.rep_message || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "a8",
+              "name": "history",
+              "value": "={{ $json.body.history || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "SetNode",
+      "name": "整理陪練輸入",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst r = $json;\nconst msg = String(r.rep_message || '');\nconst type = String(r.customer_type || '');\nconst diff = String(r.difficulty || '基礎');\nconst round = Number(r.round || 1);\n\nfunction has(re){ return re.test(msg); }\nfunction pick(arr, n){ return arr[Math.abs(n) % arr.length]; }\n\nlet resistance = 1;\nif (diff === '中階') resistance = 2;\nif (diff === '進階') resistance = 3;\n\nlet reply = '';\nlet customerMood = '觀望';\nlet objectiveReached = false;\n\n// 客戶人格基礎反應\nif (/理性|精算/.test(type)) {\n  if (has(/數字|多少|差多少|費用|預算|報酬|成本|缺口/)) {\n    reply = '可以，但我想先看到具體數字。你說的缺口到底怎麼算？';\n    customerMood = '開始投入';\n  } else if (has(/需求|擔心|希望|退休|家庭|現金流/)) {\n    reply = '這些我知道，但我不想只聽概念。你能不能具體一點？';\n  } else {\n    reply = pick([\n      '我比較重視數字，你先告訴我這件事實際差在哪裡。',\n      '我不喜歡太多話術，你直接講重點跟成本。',\n      '先不要談商品，我想知道這對我有什麼實際影響。'\n    ], round);\n  }\n} else if (/防備|冷淡/.test(type)) {\n  if (has(/不急|先了解|先幫您|不用現在決定/)) {\n    reply = '好，那你先講重點，我時間不多。';\n    customerMood = '防備下降';\n  } else {\n    reply = pick([\n      '我現在很忙，有事直接講。',\n      '保險我已經很多了，不用了吧。',\n      '你是不是又要推產品？'\n    ], round);\n  }\n} else if (/感性|家庭/.test(type)) {\n  if (has(/家人|孩子|配偶|父母|照顧|擔心/)) {\n    reply = '我最擔心的其實是如果我出事，家裡會亂掉。';\n    customerMood = '情緒打開';\n  } else {\n    reply = pick([\n      '我比較在意家人，不想讓他們以後辛苦。',\n      '我其實不太懂保險，只想知道家裡會不會有保障。',\n      '如果真的發生事情，我最怕拖累家人。'\n    ], round);\n  }\n} else {\n  if (has(/為什麼|最在意|最擔心|如果/)) {\n    reply = '如果真的要說，我比較擔心未來現金流不夠。';\n    customerMood = '願意分享';\n  } else {\n    reply = pick([\n      '你先說說看。',\n      '我還沒特別想過。',\n      '這件事我有點興趣，但還不急。'\n    ], round);\n  }\n}\n\n// 異議注入\nif (resistance >= 2 && round >= 2 && !/太貴|沒時間|再想想|已有保險/.test(msg)) {\n  if (round % 3 === 0) {\n    reply = '可是我覺得這類規劃最後通常都很貴，我想先再看看。';\n    customerMood = '價格異議';\n  }\n}\nif (resistance >= 3 && round >= 3 && round % 4 === 0) {\n  reply = '我已經有保險了，而且最近也沒時間，我真的需要現在處理嗎？';\n  customerMood = '複合異議';\n}\n\n// 是否達成下一步\nif (has(/約|下次|哪一天|這週|下週|資料|盤點|20分鐘|30分鐘/) && round >= 3) {\n  if (resistance === 1 || customerMood === '開始投入' || has(/不用現在決定|先盤點/)) {\n    reply = '好，那你下週再找我，我可以先給你一些資料看看。';\n    objectiveReached = true;\n    customerMood = '願意下一步';\n  }\n}\n\nconst maxRounds = diff === '進階' ? 8 : diff === '中階' ? 6 : 5;\nconst ended = objectiveReached || round >= maxRounds;\n\nreturn [{\n  json: {\n    ...r,\n    customer_reply: reply,\n    customer_mood: customerMood,\n    objective_reached: objectiveReached,\n    ended,\n    next_round: round + 1,\n    max_rounds: maxRounds\n  }\n}];\n"
+      },
+      "id": "SimulatorNode",
+      "name": "客戶模擬器（規則式）",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst r=$json;\nconst old=String(r.history||'').trim();\nconst newHistory = [\n  old,\n  `業務：${r.rep_message}`,\n  `客戶：${r.customer_reply}`\n].filter(Boolean).join('\\n');\n\nreturn [{json:{...r,updated_history:newHistory}}];\n"
+      },
+      "id": "HistoryNode",
+      "name": "更新對話歷史",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "if1",
+              "leftValue": "={{ $json.ended }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "IfEndedNode",
+      "name": "是否結束本局",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst r=$json;\nconst text=String(r.updated_history||'');\n\nfunction count(re){ return (text.match(re)||[]).length; }\nfunction cap(n){ return Math.max(0,Math.min(100,n)); }\n\nlet opening=50, questioning=40, needs=40, objection=40, closing=40;\nif(/您好|哈囉|先生|小姐|哥|姐/.test(text)) opening+=10;\nif(/不急著|先了解|先幫您|先盤點|不用現在決定/.test(text)) opening+=20;\nconst q=count(/[?？]/g); questioning+=Math.min(30,q*5);\nif(/為什麼|怎麼看|比較在意|最擔心|如果/.test(text)) questioning+=15;\nif(/家庭|孩子|配偶|父母/.test(text)) needs+=10;\nif(/現金流|收入|支出|退休|資產|負擔/.test(text)) needs+=15;\nif(/風險|擔心|缺口|影響/.test(text)) needs+=15;\nif(/太貴|再想想|不需要|已有保險|沒時間|很忙/.test(text)) objection+=10;\nif(/理解|我懂|可以理解|先不急/.test(text)) objection+=15;\nif(/卡住的是|預算|時機|內容/.test(text)) objection+=20;\nif(/下次|約|時間|資料|下一步|這週|下週/.test(text)) closing+=25;\nif(r.objective_reached) closing+=20;\n\nopening=cap(opening); questioning=cap(questioning); needs=cap(needs); objection=cap(objection); closing=cap(closing);\nconst total=Math.round(opening*.15+questioning*.25+needs*.25+objection*.20+closing*.15);\nconst scores={'開場':opening,'提問':questioning,'需求分析':needs,'異議處理':objection,'成交收口':closing};\nconst weakest=Object.entries(scores).sort((a,b)=>a[1]-b[1])[0];\nconst advice={\n  '開場':'先降低客戶防備，清楚說明今天先了解、不急著談商品。',\n  '提問':'增加開放式追問，避免連續自問自答。',\n  '需求分析':'把問題連到家庭責任、現金流與未來目標。',\n  '異議處理':'先確認異議真正原因，再回應。',\n  '成交收口':'每次對話至少取得一個明確下一步。'\n}[weakest[0]];\n\nreturn [{json:{\n  ...r,\n  opening_score:opening,\n  questioning_score:questioning,\n  needs_score:needs,\n  objection_score:objection,\n  closing_score:closing,\n  total_score:total,\n  weakest_skill:weakest[0],\n  improvement:advice,\n  manager_required: total<65 || weakest[1]<55\n}}];\n"
+      },
+      "id": "ScoreNode",
+      "name": "結束後自動評分",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "請替換為你的 Google Sheet ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "RolePlay紀錄",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "日期時間": "={{ $now.toFormat('yyyy-LL-dd HH:mm:ss') }}",
+            "業務員": "={{ $json.rep_name }}",
+            "情境": "={{ $json.scenario }}",
+            "客戶類型": "={{ $json.customer_type }}",
+            "開場分數": "={{ $json.opening_score }}",
+            "提問分數": "={{ $json.questioning_score }}",
+            "需求分析分數": "={{ $json.needs_score }}",
+            "異議處理分數": "={{ $json.objection_score }}",
+            "成交收口分數": "={{ $json.closing_score }}",
+            "總分": "={{ $json.total_score }}",
+            "主要弱項": "={{ $json.weakest_skill }}",
+            "改進建議": "={{ $json.improvement }}",
+            "主管介入": "={{ $json.manager_required ? '是':'否' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "LogNode",
+      "name": "Google Sheets－寫入陪練紀錄",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        -180
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "請在n8n重新選擇憑證",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ended:true, session_id:$json.session_id, customer_reply:$json.customer_reply, history:$json.updated_history, total_score:$json.total_score, scores:{opening:$json.opening_score,questioning:$json.questioning_score,needs:$json.needs_score,objection:$json.objection_score,closing:$json.closing_score}, weakest_skill:$json.weakest_skill, improvement:$json.improvement, manager_required:$json.manager_required } }}",
+        "options": {}
+      },
+      "id": "FinalResponseNode",
+      "name": "回傳本局評分",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1440,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ended:false, session_id:$json.session_id, round:$json.round, next_round:$json.next_round, customer_reply:$json.customer_reply, customer_mood:$json.customer_mood, objective_reached:$json.objective_reached, history:$json.updated_history } }}",
+        "options": {}
+      },
+      "id": "ContinueResponseNode",
+      "name": "回傳下一輪客戶回應",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1200,
+        120
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook－陪練訊息": {
+      "main": [
+        [
+          {
+            "node": "整理陪練輸入",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "整理陪練輸入": {
+      "main": [
+        [
+          {
+            "node": "客戶模擬器（規則式）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "客戶模擬器（規則式）": {
+      "main": [
+        [
+          {
+            "node": "更新對話歷史",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "更新對話歷史": {
+      "main": [
+        [
+          {
+            "node": "是否結束本局",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "是否結束本局": {
+      "main": [
+        [
+          {
+            "node": "結束後自動評分",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "回傳下一輪客戶回應",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "結束後自動評分": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets－寫入陪練紀錄",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "回傳本局評分",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "versionId": "banto-v8-multiturn-roleplay",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
